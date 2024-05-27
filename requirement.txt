@@ -1,0 +1,6 @@
+32 - bit 
+Instruction Decode
+Register, Immediate, Jumb
+5/stage
+Veedic Multiplier
+tecnology 45nm
