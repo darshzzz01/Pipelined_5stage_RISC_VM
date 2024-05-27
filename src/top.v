@@ -31,14 +31,14 @@ module top_tb;
 
   initial
   begin
-    // U0.U7.R0.reg_data = 16'b0_10000_0100000000;
-    // U0.U7.R1.reg_data = 16'b0_01110_0000000001;
-    // U0.U7.R2.reg_data = 16'd0;
-    // U0.U7.R3.reg_data = 16'd0;
-    // U0.U7.R4.reg_data = 16'd0;
-    // U0.U7.R5.reg_data = 16'd0;
-    // U0.U7.R6.reg_data = 16'd0;
-    // U0.U7.R7.reg_data = 16'd0;
+    U0.U7.R0.reg_data = 16'b0100000100000001;
+    U0.U7.R1.reg_data = 16'b0011100000000001;
+    U0.U7.R2.reg_data = 16'd0;
+    U0.U7.R3.reg_data = 16'd0;
+    U0.U7.R4.reg_data = 16'd0;
+    U0.U7.R5.reg_data = 16'd0;
+    U0.U7.R6.reg_data = 16'd0;
+    U0.U7.R7.reg_data = 16'd0;
   end
 
 endmodule
@@ -113,6 +113,13 @@ module top(
                 .end_addr(end_addr)
               );
 
+  ALU_16bit  U6 (
+                .A(out_A),
+                .B(out_B),
+                .opcode(op),
+                .result(out_ALU)
+             );
+
   RegBank  U7 (
              .clk(clk),
              .reset(reset),
@@ -130,13 +137,6 @@ module top(
              .P1_out(P1_out)
            );
 
-  ALU_16bit  U6 (
-               .A(out_A),
-               .B(out_B),
-               .opcode(op),
-               .result(out_ALU)
-             );
-
 endmodule
 
 module ProgramMem (
@@ -151,7 +151,7 @@ module ProgramMem (
   reg [31:0] memory [31:0];                                         // 32 locations, each 32 bits wide
   initial
   begin
-    memory[0] = 32'b0000_010_000_001_0000000000000000000;
+    memory[0] = 32'b0000_010_000_001_0000000000000000000; 
     memory[1] = 32'b0001_010_000_001_0000000000000000000;
     memory[2] = 32'b0010_010_000_001_0000000000000000000;
     memory[3] = 32'b1001_010_000_001_0000000000000000000;
@@ -292,10 +292,16 @@ module ALU_16bit(
     input [15:0] A,               //input [31:0] A,
     input [15:0] B,               //input [31:0] B,
     input [3:0] opcode,
-    output reg [15:0] result
+    output reg [31:0] result
   );
-  
+    wire [31:0] w2; // Wire to hold the product from the vedic multiplier
 
+    // Instantiating the vedic multiplier
+    vedic_multiplier_16bit n0 (
+        .A(A),
+        .B(B),
+        .product(w2)
+    );
   always @(*)
   begin
     case(opcode)
@@ -544,5 +550,111 @@ module Reg_16_bit (
 
   // Output the registered data
   assign data_out = reg_data;
+
+endmodule
+
+module vedic_multiplier_16bit(
+    input [15:0] A, // First 16-bit input
+    input [15:0] B, // Second 16-bit input
+    output [31:0] product // 32-bit output product
+);
+
+    wire [15:0] p0, p1, p2, p3;
+    wire [7:0] A1, A0, B1, B0;
+
+    // Splitting the 16-bit inputs into two 8-bit segments
+    assign A1 = A[15:8];
+    assign A0 = A[7:0];
+    assign B1 = B[15:8];
+    assign B0 = B[7:0];
+
+    // Vedic multipliers for 8x8 bit multiplication
+    vedic_multiplier_8bit VM0 (.A(A0), .B(B0), .product(p0));
+    vedic_multiplier_8bit VM1 (.A(A1), .B(B0), .product(p1));
+    vedic_multiplier_8bit VM2 (.A(A0), .B(B1), .product(p2));
+    vedic_multiplier_8bit VM3 (.A(A1), .B(B1), .product(p3));
+
+    // Calculating final product
+    wire [23:0] sum1, sum2, sum3;
+
+    assign sum1 = {8'b0, p0[15:0]};
+    assign sum2 = {p1[15:0], 8'b0} + {p2[15:0], 8'b0};
+    assign sum3 = {p3[15:0], 16'b0};
+
+    assign product = sum1 + sum2 + sum3;
+
+endmodule
+
+module vedic_multiplier_8bit(
+    input [7:0] A, // First 8-bit input
+    input [7:0] B, // Second 8-bit input
+    output [15:0] product // 16-bit output product
+);
+
+    wire [7:0] p0, p1, p2, p3;
+    wire [3:0] A1, A0, B1, B0;
+
+    // Splitting the 8-bit inputs into two 4-bit segments
+    assign A1 = A[7:4];
+    assign A0 = A[3:0];
+    assign B1 = B[7:4];
+    assign B0 = B[3:0];
+
+    // Vedic multipliers for 4x4 bit multiplication
+    vedic_multiplier_4bit VM0 (.A(A0), .B(B0), .product(p0));
+    vedic_multiplier_4bit VM1 (.A(A1), .B(B0), .product(p1));
+    vedic_multiplier_4bit VM2 (.A(A0), .B(B1), .product(p2));
+    vedic_multiplier_4bit VM3 (.A(A1), .B(B1), .product(p3));
+
+    // Calculating final product
+    wire [11:0] sum1, sum2, sum3;
+
+    assign sum1 = {4'b0, p0[7:0]};
+    assign sum2 = {p1[7:0], 4'b0} + {p2[7:0], 4'b0};
+    assign sum3 = {p3[7:0], 8'b0};
+
+    assign product = sum1 + sum2 + sum3;
+
+endmodule
+
+module vedic_multiplier_4bit(
+    input [3:0] A, // First 4-bit input
+    input [3:0] B, // Second 4-bit input
+    output [7:0] product // 8-bit output product
+);
+
+    wire [3:0] p0, p1, p2, p3;
+    wire [1:0] A1, A0, B1, B0;
+
+    // Splitting the 4-bit inputs into two 2-bit segments
+    assign A1 = A[3:2];
+    assign A0 = A[1:0];
+    assign B1 = B[3:2];
+    assign B0 = B[1:0];
+
+    // Vedic multipliers for 2x2 bit multiplication
+    vedic_multiplier_2bit VM0 (.A(A0), .B(B0), .product(p0));
+    vedic_multiplier_2bit VM1 (.A(A1), .B(B0), .product(p1));
+    vedic_multiplier_2bit VM2 (.A(A0), .B(B1), .product(p2));
+    vedic_multiplier_2bit VM3 (.A(A1), .B(B1), .product(p3));
+
+    // Calculating final product
+    wire [5:0] sum1, sum2, sum3;
+
+    assign sum1 = {2'b0, p0[3:0]};
+    assign sum2 = {p1[3:0], 2'b0} + {p2[3:0], 2'b0};
+    assign sum3 = {p3[3:0], 4'b0};
+
+    assign product = sum1 + sum2 + sum3;
+
+endmodule
+
+module vedic_multiplier_2bit(
+    input [1:0] A, // First 2-bit input
+    input [1:0] B, // Second 2-bit input
+    output [3:0] product // 4-bit output product
+);
+
+    assign product = A * B; // Direct multiplication for 2x2 bit
 
 endmodule

@@ -1,0 +1,465 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dC:/Users/Darshan K/OneDrive/Desktop/Pipelined_5stage_RISC_VM/tcl
+T_opt
+!s110 1716795898
+VlCkaD^0c^>PmXTJhJ9>zh2
+04 25 4 work tb_vedic_multiplier_16bit fast 0
+=1-60e9aab94075-665439fa-6c-52c4
+Z1 o-quiet -auto_acc_if_foreign -work work +acc
+Z2 tCvgOpt 0
+n@_opt
+Z3 OL;O;10.7c;67
+R0
+T_opt1
+!s110 1716799353
+V<miz?>^BzR_FCOPDFo7Gb1
+04 6 4 work top_tb fast 0
+=1-60e9aab94075-66544779-11a-57ec
+R1
+R2
+n@_opt1
+R3
+R0
+T_opt2
+!s110 1716801160
+VWWCkUX?TO<fl;m=AbazPg0
+04 12 4 work top_32bit_tb fast 0
+=1-60e9aab94075-66544e88-2a4-454c
+R1
+R2
+n@_opt2
+R3
+vAddrGen
+Z4 !s110 1716801159
+!i10b 1
+!s100 2kE9>J3L[8EnMPWmKkj<o2
+Ii:B76gG;O8Ek7W4HjmEGL2
+Z5 VDg1SIo80bB@j0V0VzS_@n1
+R0
+Z6 w1716801151
+Z7 8../src/top_32bit.v
+Z8 F../src/top_32bit.v
+L0 172
+Z9 OL;L;10.7c;67
+r1
+!s85 0
+31
+Z10 !s108 1716801159.000000
+Z11 !s107 ../src/top_32bit.v|
+Z12 !s90 -reportprogress|300|-work|work|../src/top_32bit.v|
+!i113 0
+Z13 o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+R2
+n@addr@gen
+vALU_16bit
+Z14 !s110 1716799745
+!i10b 1
+!s100 HINc=5B6]4ROUW;[72N^J0
+InDVkaPe2Hfbch[m;aF6H@2
+R5
+R0
+Z15 w1716799344
+Z16 8../src/top.v
+Z17 F../src/top.v
+L0 291
+R9
+r1
+!s85 0
+31
+Z18 !s108 1716799745.000000
+Z19 !s107 ../src/top.v|
+Z20 !s90 -reportprogress|300|-work|work|../src/top.v|
+!i113 0
+R13
+R2
+n@a@l@u_16bit
+vALU_32bit
+R4
+!i10b 1
+!s100 Hj[Fe[>IYXf[cR:N@nLQ13
+I;9?m@kT2SeU6>gA[Gc5Pk0
+R5
+R0
+R6
+R7
+R8
+L0 290
+R9
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 0
+R13
+R2
+n@a@l@u_32bit
+vdecoder_3to8
+R4
+!i10b 1
+!s100 FO[KejZdA55AP?2TGhLET3
+IIbT[E^UW]APVSSg:9:^0>1
+R5
+R0
+R6
+R7
+R8
+L0 495
+R9
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 0
+R13
+R2
+vinst_fetch
+R4
+!i10b 1
+!s100 i?4P@LEc4IV1og7nJK4dY0
+IoXEa;b0JHjM4I@MN?>eCS0
+R5
+R0
+R6
+R7
+R8
+L0 272
+R9
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 0
+R13
+R2
+vmux_8to1
+R4
+!i10b 1
+!s100 z_YO3NoB1lIYifWmYXi]:0
+IUS5AL]@cAPf=XXlY4<2E=1
+R5
+R0
+R6
+R7
+R8
+L0 456
+R9
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 0
+R13
+R2
+vProgramMem
+R4
+!i10b 1
+!s100 ?;?>YdgS0H`?iCA87gL4;3
+IJ3nd>ZMz]mJe;P4OY5H^02
+R5
+R0
+R6
+R7
+R8
+L0 141
+R9
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 0
+R13
+R2
+n@program@mem
+vReg_16_bit
+R4
+!i10b 1
+!s100 GE`mzTME?;5EkfjAki4Ph3
+IhK8eg3mNRl2lF?G:M[bl?3
+R5
+R0
+R6
+R7
+R8
+L0 527
+R9
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 0
+R13
+R2
+n@reg_16_bit
+vRegBank
+R4
+!i10b 1
+!s100 Kb`>TARz_6K1E7zU53_D_1
+IS@J4=9R;LOmD3ER]BZd5W3
+R5
+R0
+R6
+R7
+R8
+L0 330
+R9
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 0
+R13
+R2
+n@reg@bank
+vregister_32bit
+R4
+!i10b 1
+!s100 Xie:cFNG3MB5BGjV?=k>V3
+I<Yd>n=fR_L>YJWYCMlg1V0
+R5
+R0
+R6
+R7
+R8
+L0 240
+R9
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 0
+R13
+R2
+vregister_5bit
+R4
+!i10b 1
+!s100 eekQ]MMAjYDa:N;7AL8ZD1
+IBQ]dj5H]8^OCZiLlRGS8d0
+R5
+R0
+R6
+R7
+R8
+L0 211
+R9
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 0
+R13
+R2
+vtb_vedic_multiplier_16bit
+!s110 1716797739
+!i10b 1
+!s100 UKa7AV7S<2n4OLAbd:UCB0
+I4E0V`5dPMmn=[dYmBbDLU0
+R5
+R0
+w1716793992
+8../src/vedic_mul.v
+F../src/vedic_mul.v
+L0 33
+R9
+r1
+!s85 0
+31
+!s108 1716797739.000000
+!s107 ../src/vedic_mul.v|
+!s90 -reportprogress|300|-work|work|../src/vedic_mul.v|
+!i113 0
+R13
+R2
+vtop
+R14
+!i10b 1
+!s100 Rk7?@fLZJk6cV4F[M0Hfn3
+InDbD=5hEin>ecoc>Y3=o63
+R5
+R0
+R15
+R16
+R17
+Z21 L0 46
+R9
+r1
+!s85 0
+31
+R18
+R19
+R20
+!i113 0
+R13
+R2
+vtop_32bit
+R4
+!i10b 1
+!s100 6XNVEFI67k2EQ8jJ]m6NT0
+IOJDLeo>hEc9Tz5;KgP2Z:3
+R5
+R0
+R6
+R7
+R8
+R21
+R9
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 0
+R13
+R2
+vtop_32bit_tb
+R4
+!i10b 1
+!s100 YBBB>IQ0FMZSk?mmX_LJ<3
+Ial:93`T6N>8E=VjHEzI^G1
+R5
+R0
+R6
+R7
+R8
+L0 1
+R9
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 0
+R13
+R2
+vtop_tb
+R14
+!i10b 1
+!s100 o@9l^PRKjnddjn?@F]D=g1
+I>bDcNLQhk<J3IUl5H7__[2
+R5
+R0
+R15
+R16
+R17
+L0 1
+R9
+r1
+!s85 0
+31
+R18
+R19
+R20
+!i113 0
+R13
+R2
+vvedic_multiplier_16bit
+R4
+!i10b 1
+!s100 PS_dfM8=ESe`_eI3ORi:=2
+Im`6XUkJ;N[4eILN:=1XoZ3
+R5
+R0
+R6
+R7
+R8
+L0 553
+R9
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 0
+R13
+R2
+vvedic_multiplier_2bit
+R4
+!i10b 1
+!s100 m3cYlKSCkeBXm3MlaV=aD1
+IAJD3i1CBQHSz?aiY_WMe@0
+R5
+R0
+R6
+R7
+R8
+L0 649
+R9
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 0
+R13
+R2
+vvedic_multiplier_4bit
+R4
+!i10b 1
+!s100 A1gE:fWfXH<`JT?X6zHRg2
+IbJDNP7iB2OAB5;MUk7jVY0
+R5
+R0
+R6
+R7
+R8
+L0 617
+R9
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 0
+R13
+R2
+vvedic_multiplier_8bit
+R4
+!i10b 1
+!s100 8?V?R7]3h80]:5Bl:dmW02
+IQFJm^QYXno0GX4UK`HRV71
+R5
+R0
+R6
+R7
+R8
+L0 585
+R9
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 0
+R13
+R2

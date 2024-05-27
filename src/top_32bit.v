@@ -31,8 +31,8 @@ module top_32bit_tb;
 
   initial
   begin
-    U0.U7.R0.reg_data = 32'b0_1000000001000000000000000000000;
-    U0.U7.R1.reg_data = 32'b0_0111111000000000000000000000000;
+    U0.U7.R0.reg_data = 32'b0_0000000000000000000000000000010;
+    U0.U7.R1.reg_data = 32'b0_0000000000000000000000000000001;
     U0.U7.R2.reg_data = 32'd0;
     U0.U7.R3.reg_data = 32'd0;
     U0.U7.R4.reg_data = 32'd0;
@@ -136,7 +136,6 @@ module top_32bit(
                .opcode(op),
                .result(out_ALU)
              );
-
 endmodule
 
 module ProgramMem (
@@ -294,28 +293,20 @@ module ALU_32bit(
     input [3:0] opcode,
     output reg [31:0] result
   );
+  wire [31:0] w2;
+  vedic_multiplier_16bit n0(
+              .A(A[15:0]),
+              .B(B[15:0]),
+              .product(w2)
+  );
 
-  wire [31:0] w0,w1,w2;
-  wire t0;
-  assign t0 = opcode == 4'b0000;
-  ieee_32add  U0 (
-                .a(A),
-                .b(B),
-                .add_sub_signal(t0),
-                .res(w0)
-              );
-  ieee_32mul  U3 (
-                .a(A),
-                .b(B),
-                .res(w2)
-              );
   always @(*)
   begin
     case(opcode)
       4'b0000:
-        result = w0;
+        result = A + B;
       4'b0001:
-        result = w0;
+        result = A - B;
       4'b0010:
         result = w2;
       4'b0011:
@@ -559,308 +550,108 @@ module Reg_16_bit (
 
 endmodule
 
-// Multiplication
-module ieee_32mul(
-    a,
-    b,
-    res
-  );
+module vedic_multiplier_16bit(
+    input [15:0] A, // First 16-bit input
+    input [15:0] B, // Second 16-bit input
+    output [31:0] product // 32-bit output product
+);
 
-  input [31:0] a;
-  input [31:0] b;
-  output [31:0] res;
+    wire [15:0] p0, p1, p2, p3;
+    wire [7:0] A1, A0, B1, B0;
 
-  wire exception,overflow,underflow;
-  wire sign,product_round,normalised,zero;
-  wire [8:0] exponent,sum_exponent;
-  wire [22:0] product_mantissa;
-  wire [23:0] op_a,op_b;
-  wire [47:0] product,product_normalised; //48 Bits
+    // Splitting the 16-bit inputs into two 8-bit segments
+    assign A1 = A[15:8];
+    assign A0 = A[7:0];
+    assign B1 = B[15:8];
+    assign B0 = B[7:0];
 
+    // Vedic multipliers for 8x8 bit multiplication
+    vedic_multiplier_8bit VM0 (.A(A0), .B(B0), .product(p0));
+    vedic_multiplier_8bit VM1 (.A(A1), .B(B0), .product(p1));
+    vedic_multiplier_8bit VM2 (.A(A0), .B(B1), .product(p2));
+    vedic_multiplier_8bit VM3 (.A(A1), .B(B1), .product(p3));
 
-  assign sign = a[31] ^ b[31];   													// XOR of 32nd bit
+    // Calculating final product
+    wire [23:0] sum1, sum2, sum3;
 
-  assign exception = (&a[30:23]) | (&b[30:23]);											// Execption sets to 1 when exponent of any a or b is 255
-  // If exponent is 0, hidden bit is 0
+    assign sum1 = {8'b0, p0[15:0]};
+    assign sum2 = {p1[15:0], 8'b0} + {p2[15:0], 8'b0};
+    assign sum3 = {p3[15:0], 16'b0};
 
-
-
-  assign op_a = (|a[30:23]) ? {1'b1,a[22:0]} : {1'b0,a[22:0]};
-
-  assign op_b = (|b[30:23]) ? {1'b1,b[22:0]} : {1'b0,b[22:0]};
-
-  assign product = op_a * op_b;													// Product
-
-  assign product_round = |product_normalised[22:0];  									        // Last 22 bits are ORed for rounding off purpose
-
-  assign normalised = product[47] ? 1'b1 : 1'b0;
-
-  assign product_normalised = normalised ? product : product << 1;								// Normalized value based on 48th bit
-
-  assign product_mantissa = product_normalised[46:24] + {21'b0,(product_normalised[23] & product_round)};				// Mantissa
-
-  assign zero = exception ? 1'b0 : (product_mantissa == 23'd0) ? 1'b1 : 1'b0;
-
-  assign sum_exponent = a[30:23] + b[30:23];
-
-  assign exponent = sum_exponent - 8'd127 + normalised;
-
-  assign overflow = ((exponent[8] & !exponent[7]) & !zero) ;									// Overall exponent is greater than 255 then Overflow
-
-  assign underflow = ((exponent[8] & exponent[7]) & !zero) ? 1'b1 : 1'b0; 							// Sum of exponents is less than 255 then Underflow
-
-  assign res = exception ? 32'd0 : zero ? {sign,31'd0} : overflow ? {sign,8'hFF,23'd0} : underflow ? {sign,31'd0} : {sign,exponent[7:0],product_mantissa};
-
+    assign product = sum1 + sum2 + sum3;
 
 endmodule
 
-module ieee_32add(a,b,add_sub_signal,res);
+module vedic_multiplier_8bit(
+    input [7:0] A, // First 8-bit input
+    input [7:0] B, // Second 8-bit input
+    output [15:0] product // 16-bit output product
+);
 
-  input [31:0] a,b;
-  input add_sub_signal;														// If 1 then addition otherwise subtraction
-  output [31:0] res;
+    wire [7:0] p0, p1, p2, p3;
+    wire [3:0] A1, A0, B1, B0;
 
-  wire exception;
+    // Splitting the 8-bit inputs into two 4-bit segments
+    assign A1 = A[7:4];
+    assign A0 = A[3:0];
+    assign B1 = B[7:4];
+    assign B0 = B[3:0];
 
-  wire operation_add_sub_signal;
-  wire enable;
-  wire output_sign,perform;
+    // Vedic multipliers for 4x4 bit multiplication
+    vedic_multiplier_4bit VM0 (.A(A0), .B(B0), .product(p0));
+    vedic_multiplier_4bit VM1 (.A(A1), .B(B0), .product(p1));
+    vedic_multiplier_4bit VM2 (.A(A0), .B(B1), .product(p2));
+    vedic_multiplier_4bit VM3 (.A(A1), .B(B1), .product(p3));
 
-  wire [31:0] op_a,op_b;
-  wire [23:0] significand_a,significand_b;
-  wire [7:0] exponent_diff,exp_a,exp_b;
+    // Calculating final product
+    wire [11:0] sum1, sum2, sum3;
 
+    assign sum1 = {4'b0, p0[7:0]};
+    assign sum2 = {p1[7:0], 4'b0} + {p2[7:0], 4'b0};
+    assign sum3 = {p3[7:0], 8'b0};
 
-  wire [23:0] significand_b_add_sub;
-  wire [7:0] exp_b_add_sub;
-
-  wire [24:0] significand_add;
-  wire [30:0] add_sum;
-
-  wire [23:0] significand_sub_complement;
-  wire [24:0] significand_sub;
-  wire [30:0] sub_diff;
-  wire [24:0] subtraction_diff;
-  wire [7:0] exp_sub;
-
-  assign {enable,op_a,op_b} = (a[30:0] < b[30:0]) ? {1'b1,b,a} : {1'b0,a,b};							// For operations always op_a must not be less than b
-
-  assign exp_a = op_a[30:23];
-  assign exp_b = op_b[30:23];
-
-  assign exception = (&op_a[30:23]) | (&op_b[30:23]);										// Exception flag sets 1 if either one of the exponent is 255.
-
-assign output_sign = add_sub_signal ? enable ? !op_a[31] : op_a[31] : op_a[31] ;
-
-  assign operation_add_sub_signal = add_sub_signal ? op_a[31] ^ op_b[31] : ~(op_a[31] ^ op_b[31]);				// Assign significand values according to Hidden Bit.
-
-  assign significand_a = (|op_a[30:23]) ? {1'b1,op_a[22:0]} : {1'b0,op_a[22:0]};							// If exponent is zero,hidden bit = 0,else 1
-  assign significand_b = (|op_b[30:23]) ? {1'b1,op_b[22:0]} : {1'b0,op_b[22:0]};
-
-  assign exponent_diff = op_a[30:23] - op_b[30:23];										// Exponent difference calculation
-
-  assign significand_b_add_sub = significand_b >> exponent_diff;
-
-  assign exp_b_add_sub = op_b[30:23] + exponent_diff;
-
-  assign perform = (op_a[30:23] == exp_b_add_sub);										// Checking if exponents are same
-
-  // Add Block //
-  assign significand_add = (perform & operation_add_sub_signal) ? (significand_a + significand_b_add_sub) : 25'd0;
-
-  assign add_sum[22:0] = significand_add[24] ? significand_add[23:1] : significand_add[22:0];					// res will be most 23 bits if carry generated, else least 22 bits.
-
-  assign add_sum[30:23] = significand_add[24] ? (1'b1 + op_a[30:23]) : op_a[30:23];						// If carry generates in sum value then exponent is added with 1 else feed as it is.
-
-  // Sub Block //
-  assign significand_sub_complement = (perform & !operation_add_sub_signal) ? ~(significand_b_add_sub) + 24'd1 : 24'd0 ;
-
-  assign significand_sub = perform ? (significand_a + significand_sub_complement) : 25'd0;
-
-  priority_encoder pe(significand_sub,op_a[30:23],subtraction_diff,exp_sub);
-
-  assign sub_diff[30:23] = exp_sub;
-
-  assign sub_diff[22:0] = subtraction_diff[22:0];
-
-
-  // Output //
-  assign res = exception ? 32'b0 : ((!operation_add_sub_signal) ? {output_sign,sub_diff} : {output_sign,add_sum});
+    assign product = sum1 + sum2 + sum3;
 
 endmodule
 
-// Priority Encoder
+module vedic_multiplier_4bit(
+    input [3:0] A, // First 4-bit input
+    input [3:0] B, // Second 4-bit input
+    output [7:0] product // 8-bit output product
+);
 
-module priority_encoder(significand,exp_a,Significand,exp_sub);
+    wire [3:0] p0, p1, p2, p3;
+    wire [1:0] A1, A0, B1, B0;
 
+    // Splitting the 4-bit inputs into two 2-bit segments
+    assign A1 = A[3:2];
+    assign A0 = A[1:0];
+    assign B1 = B[3:2];
+    assign B0 = B[1:0];
 
-  input [24:0] significand;
-  input [7:0] exp_a;
-  output [24:0] Significand;
-  reg [24:0] Significand;
-  output [7:0] exp_sub;
+    // Vedic multipliers for 2x2 bit multiplication
+    vedic_multiplier_2bit VM0 (.A(A0), .B(B0), .product(p0));
+    vedic_multiplier_2bit VM1 (.A(A1), .B(B0), .product(p1));
+    vedic_multiplier_2bit VM2 (.A(A0), .B(B1), .product(p2));
+    vedic_multiplier_2bit VM3 (.A(A1), .B(B1), .product(p3));
 
-  reg [4:0] shift;
+    // Calculating final product
+    wire [5:0] sum1, sum2, sum3;
 
-  always @(significand)
-  begin
-    casex (significand)
-      25'b1_1xxx_xxxx_xxxx_xxxx_xxxx_xxxx :
-      begin
-        Significand = significand;
-        shift = 5'd0;
-      end
-      25'b1_01xx_xxxx_xxxx_xxxx_xxxx_xxxx :
-      begin
-        Significand = significand << 1;
-        shift = 5'd1;
-      end
+    assign sum1 = {2'b0, p0[3:0]};
+    assign sum2 = {p1[3:0], 2'b0} + {p2[3:0], 2'b0};
+    assign sum3 = {p3[3:0], 4'b0};
 
-      25'b1_001x_xxxx_xxxx_xxxx_xxxx_xxxx :
-      begin
-        Significand = significand << 2;
-        shift = 5'd2;
-      end
+    assign product = sum1 + sum2 + sum3;
 
-      25'b1_0001_xxxx_xxxx_xxxx_xxxx_xxxx :
-      begin
-        Significand = significand << 3;
-        shift = 5'd3;
-      end
+endmodule
 
-      25'b1_0000_1xxx_xxxx_xxxx_xxxx_xxxx :
-      begin
-        Significand = significand << 4;
-        shift = 5'd4;
-      end
+module vedic_multiplier_2bit(
+    input [1:0] A, // First 2-bit input
+    input [1:0] B, // Second 2-bit input
+    output [3:0] product // 4-bit output product
+);
 
-      25'b1_0000_01xx_xxxx_xxxx_xxxx_xxxx :
-      begin
-        Significand = significand << 5;
-        shift = 5'd5;
-      end
-
-      25'b1_0000_001x_xxxx_xxxx_xxxx_xxxx :
-      begin						// 24'h020000
-        Significand = significand << 6;
-        shift = 5'd6;
-      end
-
-      25'b1_0000_0001_xxxx_xxxx_xxxx_xxxx :
-      begin						// 24'h010000
-        Significand = significand << 7;
-        shift = 5'd7;
-      end
-
-      25'b1_0000_0000_1xxx_xxxx_xxxx_xxxx :
-      begin						// 24'h008000
-        Significand = significand << 8;
-        shift = 5'd8;
-      end
-
-      25'b1_0000_0000_01xx_xxxx_xxxx_xxxx :
-      begin						// 24'h004000
-        Significand = significand << 9;
-        shift = 5'd9;
-      end
-
-      25'b1_0000_0000_001x_xxxx_xxxx_xxxx :
-      begin						// 24'h002000
-        Significand = significand << 10;
-        shift = 5'd10;
-      end
-
-      25'b1_0000_0000_0001_xxxx_xxxx_xxxx :
-      begin						// 24'h001000
-        Significand = significand << 11;
-        shift = 5'd11;
-      end
-
-      25'b1_0000_0000_0000_1xxx_xxxx_xxxx :
-      begin						// 24'h000800
-        Significand = significand << 12;
-        shift = 5'd12;
-      end
-
-      25'b1_0000_0000_0000_01xx_xxxx_xxxx :
-      begin						// 24'h000400
-        Significand = significand << 13;
-        shift = 5'd13;
-      end
-
-      25'b1_0000_0000_0000_001x_xxxx_xxxx :
-      begin						// 24'h000200
-        Significand = significand << 14;
-        shift = 5'd14;
-      end
-
-      25'b1_0000_0000_0000_0001_xxxx_xxxx  :
-      begin						// 24'h000100
-        Significand = significand << 15;
-        shift = 5'd15;
-      end
-
-      25'b1_0000_0000_0000_0000_1xxx_xxxx :
-      begin						// 24'h000080
-        Significand = significand << 16;
-        shift = 5'd16;
-      end
-
-      25'b1_0000_0000_0000_0000_01xx_xxxx :
-      begin						// 24'h000040
-        Significand = significand << 17;
-        shift = 5'd17;
-      end
-
-      25'b1_0000_0000_0000_0000_001x_xxxx :
-      begin						// 24'h000020
-        Significand = significand << 18;
-        shift = 5'd18;
-      end
-
-      25'b1_0000_0000_0000_0000_0001_xxxx :
-      begin						// 24'h000010
-        Significand = significand << 19;
-        shift = 5'd19;
-      end
-
-      25'b1_0000_0000_0000_0000_0000_1xxx :
-      begin						// 24'h000008
-        Significand = significand << 20;
-        shift = 5'd20;
-      end
-
-      25'b1_0000_0000_0000_0000_0000_01xx :
-      begin						// 24'h000004
-        Significand = significand << 21;
-        shift = 5'd21;
-      end
-
-      25'b1_0000_0000_0000_0000_0000_001x :
-      begin						// 24'h000002
-        Significand = significand << 22;
-        shift = 5'd22;
-      end
-
-      25'b1_0000_0000_0000_0000_0000_0001 :
-      begin						// 24'h000001
-        Significand = significand << 23;
-        shift = 5'd23;
-      end
-
-      25'b1_0000_0000_0000_0000_0000_0000 :
-      begin						// 24'h000000
-        Significand = significand << 24;
-        shift = 5'd24;
-      end
-      default :
-      begin
-        Significand = (~significand) + 1'b1;
-        shift = 8'd0;
-      end
-
-    endcase
-  end
-  assign exp_sub = exp_a - shift;
+    assign product = A * B; // Direct multiplication for 2x2 bit
 
 endmodule
