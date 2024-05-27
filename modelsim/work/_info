@@ -1,0 +1,124 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dC:/Users/Darshan K/OneDrive/Desktop/Pipelined_5stage_RISC_VM/modelsim
+T_opt
+!s110 1716794442
+VT94hnZmf]hWUiY_;RUn7z1
+04 25 4 work tb_vedic_multiplier_16bit fast 0
+=1-60e9aab94075-6654344a-2c9-4528
+o-quiet -auto_acc_if_foreign -work work +acc
+Z1 tCvgOpt 0
+n@_opt
+OL;O;10.7c;67
+vtb_vedic_multiplier_16bit
+Z2 !s110 1716794441
+!i10b 1
+!s100 UKa7AV7S<2n4OLAbd:UCB0
+I4E0V`5dPMmn=[dYmBbDLU0
+Z3 VDg1SIo80bB@j0V0VzS_@n1
+R0
+Z4 w1716793992
+Z5 8../src/vedic_mul.v
+Z6 F../src/vedic_mul.v
+L0 33
+Z7 OL;L;10.7c;67
+r1
+!s85 0
+31
+Z8 !s108 1716794441.000000
+Z9 !s107 ../src/vedic_mul.v|
+Z10 !s90 -reportprogress|300|-work|work|../src/vedic_mul.v|
+!i113 0
+Z11 o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+R1
+vvedic_multiplier_16bit
+R2
+!i10b 1
+!s100 Xl=SNRJFBiema=^oECM2l3
+INR3nRgajX@DH;E?@^RQ792
+R3
+R0
+R4
+R5
+R6
+L0 1
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R1
+vvedic_multiplier_2bit
+R2
+!i10b 1
+!s100 VHV[7BOjDgF1G5Te:^^5h3
+I0YKY<5DYHV@96zIi]Lm;J3
+R3
+R0
+R4
+R5
+R6
+L0 137
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R1
+vvedic_multiplier_4bit
+R2
+!i10b 1
+!s100 ij`PeBlI[^T?YUVaZG32h0
+IV6E8P=j@QCC0jJ@=df2TF2
+R3
+R0
+R4
+R5
+R6
+L0 105
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R1
+vvedic_multiplier_8bit
+R2
+!i10b 1
+!s100 jPXWX=8l68?U_@G7OF_?]3
+I`Z82VdG6a22d@8hjB5`jV2
+R3
+R0
+R4
+R5
+R6
+L0 73
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R1
